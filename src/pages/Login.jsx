@@ -1,13 +1,15 @@
 import axios from "axios";
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import React from "react";
+import React, { useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import * as Yup from "yup";
 import "react-toastify/dist/ReactToastify.css";
+import { AuthContext } from "../../context/AuthProvider";
 
 const Login = () => {
   const navigate = useNavigate();
+  const { login } = useContext(AuthContext); // Add this line to access the login function
 
   return (
     <div className="min-h-screen bg-fuchsia-400 flex items-center justify-center px-4">
@@ -17,36 +19,52 @@ const Login = () => {
         <Formik
           initialValues={{ email: "", password: "" }}
           validationSchema={Yup.object().shape({
-            email: Yup.string().email("Invalid email").required("Email Required"),
+            email: Yup.string()
+              .email("Invalid email")
+              .required("Email Required"),
             password: Yup.string()
               .min(8, "Too Short!")
               .max(50, "Too Long!")
-              .required(" Password Required"),
+              .required("Password Required"),
           })}
-          onSubmit={async (values, { resetForm }) => {
+          onSubmit={async (values, { resetForm, setSubmitting }) => {
             try {
               const res = await axios.post(
                 "http://localhost:8000/login",
                 values
               );
 
-              localStorage.setItem("token", res.data.token);
+              // Our updated backend now returns both token and user
+              const { token, user } = res.data;
+
+              // Store in localStorage
+              localStorage.setItem("token", token);
+              localStorage.setItem("user", JSON.stringify(user));
+
+              // Update context
+              login(token, user);
+
               toast.success("Login successful! Redirecting to home...");
               resetForm();
 
               setTimeout(() => {
-                navigate("/home");
+                navigate("/");
               }, 1500);
             } catch (error) {
-              toast.error("Login failed! Please check your credentials.");
+              toast.error(
+                error.response?.data?.message ||
+                  "Login failed! Please check your credentials."
+              );
               console.error(
                 "Login error:",
                 error.response?.data || error.message
               );
+            } finally {
+              setSubmitting(false);
             }
           }}
         >
-          {() => (
+          {({ isSubmitting }) => (
             <Form className="space-y-4">
               <div>
                 <label
@@ -88,9 +106,10 @@ const Login = () => {
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded transition duration-200"
               >
-                Submit
+                {isSubmitting ? "Logging in..." : "Login"}
               </button>
             </Form>
           )}
