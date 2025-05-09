@@ -17,11 +17,11 @@ const Login = () => {
         <Formik
           initialValues={{ email: "", password: "" }}
           validationSchema={Yup.object().shape({
-            email: Yup.string().email("Invalid email").required("Required"),
+            email: Yup.string().email("Invalid email").required("Email Required"),
             password: Yup.string()
               .min(8, "Too Short!")
               .max(50, "Too Long!")
-              .required("Required"),
+              .required(" Password Required"),
           })}
           onSubmit={async (values, { resetForm }) => {
             try {
