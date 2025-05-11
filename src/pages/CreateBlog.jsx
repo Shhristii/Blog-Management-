@@ -1,6 +1,6 @@
 import axios from "axios";
 import { ErrorMessage, Field, Form, Formik } from "formik";
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import * as Yup from "yup";
@@ -9,7 +9,17 @@ import { AuthContext } from "../../context/AuthProvider";
 
 const CreateBlog = () => {
   const navigate = useNavigate();
-  const { login } = useContext(AuthContext); // Add this line to access the login function
+  const { user } = useContext(AuthContext);
+  const [file, setFile] = useState(null); // For storing the image file
+  const [imageError, setImageError] = useState("");
+  
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setImageError("");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-fuchsia-400 flex items-center justify-center px-4">
@@ -17,8 +27,7 @@ const CreateBlog = () => {
         <h2 className="text-2xl font-bold text-center mb-6">Create Blog</h2>
         <ToastContainer />
         <Formik
-          initialValues={{ title: "", content: "", image: "" }}
-          // Updated initial values to include image
+          initialValues={{ title: "", content: "" }}
           validationSchema={Yup.object().shape({
             title: Yup.string()
               .min(2, "Too Short!")
@@ -28,30 +37,47 @@ const CreateBlog = () => {
               .min(10, "Too Short!")
               .max(1000, "Too Long!")
               .required("Content Required"),
-            image: Yup.string().url("Invalid URL").required("Image Required"),
           })}
           onSubmit={async (values, { resetForm, setSubmitting }) => {
             try {
+              if (!file) {
+                setImageError("Please upload an image");
+                return;
+              }
+
+              const formData = new FormData();
+              formData.append("title", values.title);
+              formData.append("content", values.content);
+              formData.append("image", file);
+              
+              // Check if user data exists before appending
+              if (user?._id) {
+                formData.append("userId", user._id);
+                formData.append("author", user._id); // Author should be the user's ObjectId
+              }
+              if (user?.name) {
+                formData.append("username", user.name);
+              }
+              if (user?.email) formData.append("email", user.email);
+
               const res = await axios.post(
-                "https://blog-hqx2.onrender.com/blog",
-                values
+                "https://blog-hqx2.onrender.com/blog/create",
+                formData,
+                {
+                  headers: {
+                    "Content-Type": "multipart/form-data",
+                  },
+                }
               );
-
-              // Our updated backend now returns both token and user
-
-              // Store in localStorage
-              //   localStorage.setItem("token", token);
-              //   localStorage.setItem("user", JSON.stringify(user));
-
-              // Update context
 
               toast.success(
                 "Blog created successfully! Redirecting to home..."
               );
               resetForm();
+              setFile(null);
 
               setTimeout(() => {
-                navigate("/");
+                navigate("/home");
               }, 1500);
             } catch (error) {
               toast.error(
@@ -96,8 +122,9 @@ const CreateBlog = () => {
                   Content
                 </label>
                 <Field
+                  as="textarea"
                   name="content"
-                  type="text"
+                  rows="4"
                   className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
                 <ErrorMessage
@@ -112,18 +139,17 @@ const CreateBlog = () => {
                   htmlFor="image"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Image URL
+                  Upload Image
                 </label>
-                <Field
-                  name="image"
-                  type="text"
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
                   className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 />
-                <ErrorMessage
-                  name="image"
-                  component="div"
-                  className="text-red-500 text-sm mt-1"
-                />
+                {imageError && (
+                  <div className="text-red-500 text-sm mt-1">{imageError}</div>
+                )}
               </div>
 
               <button

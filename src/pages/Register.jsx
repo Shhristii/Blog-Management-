@@ -29,7 +29,10 @@ const Register = () => {
           })}
           onSubmit={async (values, { resetForm }) => {
             try {
-              await axios.post("http://localhost:8000/register", values);
+              await axios.post(
+                "https://blog-hqx2.onrender.com/user/register",
+                values
+              );
               toast.success("Registration successful! Redirecting to login...");
               resetForm();
 

@@ -37,7 +37,7 @@ const LandingPage = () => {
             </Link>
           </div>
         )}
-        
+
         {token && ( // Show different options when user IS logged in
           <div className="flex justify-center gap-4">
             <Link
@@ -47,10 +47,10 @@ const LandingPage = () => {
               Go to Dashboard
             </Link>
             <Link
-              to="/new-post"
+              to="/create-blog"
               className="px-6 py-2 border border-teal-600 text-black-600 rounded-md font-semibold hover:bg-teal-50"
             >
-              Create New Post
+              Create New Blog
             </Link>
           </div>
         )}
