@@ -40,7 +40,7 @@ const LandingPage = () => {
               ) : (
                 <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
                   <Link
-                    to="/home"
+                    to="/blog"
                     className="px-8 py-3 bg-indigo-600 text-white text-lg font-medium rounded-lg shadow-md hover:bg-indigo-700 transition duration-300 text-center"
                   >
                     View Blogs
