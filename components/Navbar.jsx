@@ -9,7 +9,6 @@ const Navbar = () => {
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
-
   return (
     <nav className="bg-gradient-to-r from-indigo-600 to-purple-600 shadow-lg">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -43,6 +42,12 @@ const Navbar = () => {
               className="text-gray-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
             >
               Blogs
+            </Link>
+            <Link
+              to="/my-blogs"
+              className="text-gray-100 hover:text-white px-3 py-2 rounded-md text-sm font-medium"
+            >
+              My Blogs
             </Link>
 
             {user ? (

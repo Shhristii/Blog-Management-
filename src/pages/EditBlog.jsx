@@ -1,7 +1,7 @@
 import axios from "axios";
 import { ErrorMessage, Field, Form, Formik } from "formik";
 import React, { useContext, useEffect, useState } from "react";
-import { useNavigate, useParams, useLocation } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { toast, ToastContainer } from "react-toastify";
 import * as Yup from "yup";
 import "react-toastify/dist/ReactToastify.css";
@@ -10,14 +10,15 @@ import { AuthContext } from "../../context/AuthProvider";
 const EditBlog = () => {
   const navigate = useNavigate();
   const { blogId } = useParams();
-  const location = useLocation();
-  const { user } = useContext(AuthContext);
+  const { token } = useContext(AuthContext);
+
   const [file, setFile] = useState(null);
   const [imageError, setImageError] = useState("");
   const [imagePreview, setImagePreview] = useState(null);
   const [initialValues, setInitialValues] = useState({
     title: "",
     content: "",
+    image: null,
   });
   const [loading, setLoading] = useState(true);
 
@@ -26,13 +27,21 @@ const EditBlog = () => {
       try {
         setLoading(true);
         const response = await axios.get(
-          `https://blog-hqx2.onrender.com/blog/${blogId}`
+          `https://blog-hqx2.onrender.com/blog/single/${blogId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
         );
+
         const blogData = response.data;
+        console.log("Fetched blog data:", blogData); // ✅ Now safely inside try block
 
         setInitialValues({
-          title: blogData.title,
-          content: blogData.content,
+          title: blogData.title || "",
+          content: blogData.content || "",
+          image: blogData.image || null,
         });
 
         if (blogData.image) {
@@ -47,34 +56,30 @@ const EditBlog = () => {
       }
     };
 
-    // If blog data was passed via state, use that instead of fetching
-    if (location.state?.blog) {
-      const blogData = location.state.blog;
-      setInitialValues({
-        title: blogData.title,
-        content: blogData.content,
-      });
-      if (blogData.image) {
-        setImagePreview(blogData.image);
-      }
-      setLoading(false);
-    } else {
-      fetchBlog();
-    }
-  }, [blogId, location.state, navigate]);
+    fetchBlog();
+  }, [blogId, navigate, token]);
 
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
-    if (selectedFile) {
-      setFile(selectedFile);
-      setImageError("");
 
-      const reader = new FileReader();
-      reader.onload = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(selectedFile);
+    if (!selectedFile) return;
+
+    if (!selectedFile.type.match("image.*")) {
+      setImageError("Please select an image file (JPEG, PNG)");
+      return;
     }
+
+    if (selectedFile.size > 2 * 1024 * 1024) {
+      setImageError("Image size should be less than 2MB");
+      return;
+    }
+
+    setFile(selectedFile);
+    setImageError("");
+
+    const reader = new FileReader();
+    reader.onload = () => setImagePreview(reader.result);
+    reader.readAsDataURL(selectedFile);
   };
 
   const validationSchema = Yup.object().shape({
@@ -90,23 +95,30 @@ const EditBlog = () => {
 
   const handleSubmit = async (values, { setSubmitting }) => {
     try {
+      if (imageError) {
+        toast.error("Please fix image errors before submitting");
+        return;
+      }
+
       const loadingToast = toast.loading("Updating blog post...");
 
       const formData = new FormData();
       formData.append("title", values.title);
       formData.append("content", values.content);
+      formData.append("image", file || initialValues.image);
       if (file) {
-        formData.append("image", file);
+        setFile(null);
+        setImagePreview(null);
       }
 
-      const res = await axios.put(
+      await axios.put(
         `https://blog-hqx2.onrender.com/blog/${blogId}`,
         formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-          }, 
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
 
@@ -143,7 +155,7 @@ const EditBlog = () => {
       <div className="container mx-auto px-4">
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
           <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
-            <h2 className="text-2xl font-bold text-white">Edit Blog Post</h2>
+            <h1 className="text-2xl font-bold text-white">Edit Blog Post</h1>
             <p className="text-indigo-100">
               Update your thoughts, stories, and ideas.
             </p>
@@ -160,6 +172,7 @@ const EditBlog = () => {
             >
               {({ isSubmitting, values }) => (
                 <Form className="space-y-6">
+                  {/* Title */}
                   <div>
                     <label
                       htmlFor="title"
@@ -180,6 +193,7 @@ const EditBlog = () => {
                     />
                   </div>
 
+                  {/* Content */}
                   <div>
                     <label
                       htmlFor="content"
@@ -201,10 +215,11 @@ const EditBlog = () => {
                     />
                     <div className="mt-1 text-xs text-gray-500 flex justify-between">
                       <span>Min 10 characters</span>
-                      <span>{values.content.length}/5000 characters</span>
+                      <span>{values.content?.length || 0}/5000 characters</span>
                     </div>
                   </div>
 
+                  {/* Image Upload */}
                   <div>
                     <label
                       htmlFor="image"
@@ -236,8 +251,7 @@ const EditBlog = () => {
                       </div>
                     )}
 
-                    {/* Image Preview */}
-                    {(imagePreview || initialValues.image) && (
+                    {(imagePreview || file || initialValues.image) && (
                       <div className="mt-4">
                         <p className="text-sm font-medium text-gray-700 mb-2">
                           {file ? "New Image Preview" : "Current Image"}
@@ -255,6 +269,7 @@ const EditBlog = () => {
                               setImagePreview(null);
                             }}
                             className="absolute top-2 right-2 bg-red-600 text-white p-1 rounded-full hover:bg-red-700"
+                            aria-label="Remove image"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -276,6 +291,7 @@ const EditBlog = () => {
                     )}
                   </div>
 
+                  {/* Buttons */}
                   <div className="flex items-center justify-between pt-4">
                     <button
                       type="button"
@@ -286,8 +302,8 @@ const EditBlog = () => {
                     </button>
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-md shadow-md hover:from-indigo-700 hover:to-purple-700 transition duration-300 flex items-center"
+                      disabled={isSubmitting || !!imageError}
+                      className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-medium rounded-md shadow-md hover:from-indigo-700 hover:to-purple-700 transition duration-300 flex items-center disabled:opacity-50"
                     >
                       {isSubmitting ? (
                         <>
