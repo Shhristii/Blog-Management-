@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import axios from "axios";
 import { toast } from "react-toastify";
@@ -9,7 +9,6 @@ const BlogActions = ({ blog, onDelete, className, buttonStyle = "icon" }) => {
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  // Check if the current user is the author of the blog
   const isAuthor =
     user && blog && (user._id === blog.author?._id || user._id === blog.userId);
 
@@ -44,16 +43,19 @@ const BlogActions = ({ blog, onDelete, className, buttonStyle = "icon" }) => {
     }
   };
 
-  // Different style options for the buttons
+  const handleEdit = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    navigate(`/edit-blog/${blog._id}`, { state: { blog } });
+  };
+
   if (buttonStyle === "icon") {
     return (
       <div className={`flex space-x-2 ${className}`}>
-        <Link
-          to={`/edit-blog/${blog._id}`}
-          state={{ blog: blog }}
+        <button
+          onClick={handleEdit}
           className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
           title="Edit"
-          onClick={(e) => e.stopPropagation()}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +71,8 @@ const BlogActions = ({ blog, onDelete, className, buttonStyle = "icon" }) => {
               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
             />
           </svg>
-        </Link>
+        </button>
+
         <button
           onClick={handleDelete}
           className="p-2 bg-white rounded-full shadow-md hover:bg-gray-100 transition-colors"
@@ -94,14 +97,12 @@ const BlogActions = ({ blog, onDelete, className, buttonStyle = "icon" }) => {
     );
   }
 
-  // Text button style
+  // Text buttons style
   return (
     <div className={`flex space-x-3 ${className}`}>
-      <Link
-        to={`/edit-blog/${blog._id}`}
-        state={{ blog: blog }}
+      <button
+        onClick={handleEdit}
         className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center"
-        onClick={(e) => e.stopPropagation()}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -118,7 +119,8 @@ const BlogActions = ({ blog, onDelete, className, buttonStyle = "icon" }) => {
           />
         </svg>
         Edit
-      </Link>
+      </button>
+
       <button
         onClick={handleDelete}
         className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors flex items-center"

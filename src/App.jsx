@@ -12,6 +12,7 @@ import PublicRoute from "../components/PublicRoute";
 import SingleBlogPage from "./pages/Blog";
 import Footer from "../components/Footer";
 import BlogDetail from "./pages/BlogDetails";
+import EditBlog from "./pages/EditBlog";
 
 const App = () => {
   const { user } = useContext(AuthContext); // Get the user from AuthContext
@@ -65,7 +66,15 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        
+
+        <Route
+          path="/edit-blog/:blogId"
+          element={
+            <ProtectedRoute user={user}>
+              <EditBlog />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
       <Footer />
     </>

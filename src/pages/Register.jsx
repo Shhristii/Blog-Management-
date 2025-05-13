@@ -45,7 +45,7 @@ const Register = () => {
                   const loadingToast = toast.loading("Logging in...");
 
                   const res = await axios.post(
-                    "https://blog-hqx2.onrender.com/user/login",
+                    "https://blog-hqx2.onrender.com/user/register",
                     values
                   );
 
