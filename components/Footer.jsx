@@ -29,7 +29,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/home"
+                  to="/blog"
                   className="text-gray-400 hover:text-white transition"
                 >
                   Blogs
@@ -37,7 +37,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/about"
+                  to="/"
                   className="text-gray-400 hover:text-white transition"
                 >
                   About Us
@@ -45,7 +45,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link
-                  to="/contact"
+                  to="/"
                   className="text-gray-400 hover:text-white transition"
                 >
                   Contact
