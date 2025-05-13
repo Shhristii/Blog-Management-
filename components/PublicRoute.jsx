@@ -6,7 +6,7 @@ import { Navigate } from "react-router-dom";
 const PublicRoute = ({ user, children }) => {
   // If user is authenticated, redirect to home
   if (user) {
-    return <Navigate to="/home" replace />;
+    return <Navigate to="/blog" replace />;
   }
 
   // If user is not authenticated, render the children components (login/signup pages)

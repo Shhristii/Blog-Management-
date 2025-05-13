@@ -9,6 +9,9 @@ import Navbar from "../components/Navbar";
 import { AuthContext } from "../context/AuthProvider";
 import ProtectedRoute from "../components/ProtectedRoute";
 import PublicRoute from "../components/PublicRoute";
+import SingleBlogPage from "./pages/Blog";
+import Footer from "../components/Footer";
+import BlogDetail from "./pages/BlogDetails";
 
 const App = () => {
   const { user } = useContext(AuthContext); // Get the user from AuthContext
@@ -39,10 +42,18 @@ const App = () => {
 
         {/* Protected Routes - Require authentication */}
         <Route
-          path="/home"
+          path="/blog"
           element={
             <ProtectedRoute user={user}>
               <Home />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/blog/:blogId"
+          element={
+            <ProtectedRoute user={user}>
+              <SingleBlogPage />
             </ProtectedRoute>
           }
         />
@@ -54,7 +65,9 @@ const App = () => {
             </ProtectedRoute>
           }
         />
+        
       </Routes>
+      <Footer />
     </>
   );
 };
