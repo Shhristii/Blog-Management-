@@ -61,9 +61,11 @@ const Navbar = () => {
 
                 <div className="relative ml-3">
                   <div className="flex items-center">
-                    <div className="bg-indigo-300 h-8 w-8 rounded-full flex items-center justify-center text-indigo-800 font-semibold">
-                      {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                    </div>
+                    <Link to="/user" className="flex items-center">
+                      <div className="bg-indigo-300 h-8 w-8 rounded-full flex items-center justify-center text-indigo-800 font-semibold">
+                        {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                      </div>
+                    </Link>
                     <span className="ml-2 text-white">{user.name}</span>
                   </div>
                 </div>
